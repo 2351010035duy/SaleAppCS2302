@@ -1,6 +1,7 @@
-from flask import render_template, request
-from saleapp import dao, app
+from flask import render_template, request, redirect
+from saleapp import dao, app, login, admin
 import math
+from flask_login import login_user, current_user, logout_user
 
 @app.route('/')
 def index():
@@ -17,18 +18,56 @@ def details(id):
     product = dao.get_product_by_id(id)
     return render_template('product-details.html', product=product)
 
-@app.route('/login')
-def login():
-    return render_template('login.html')
+@app.route('/login', methods = ['get','post'])
+def login_my_user():
+    if current_user.is_authenticated:
+        return redirect('/')
+    err_msg = None
+    if request.method.__eq__('POST'):
+        user_name = request.form.get('user_name')
+        password = request.form.get('password')
+        user = dao.auth_user(user_name, password)
+        if user:
+            login_user(user)
+            return redirect('/')
+        else:
+            err_msg = "Tài khoản hoặc mật khẩu bị lỗi!"
+
+    return render_template('login.html', err_msg = err_msg)
 
 @app.route('/register')
 def register():
-    return render_template('register.html')
+    err_msg = None
+    if request.method.__eq__('POST'):
+        user_name = request.form.get('user_name')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        user = dao.get_user_by_user_name(user_name)
+        # if user and password.__eq__(confirm_password):
+
+        # if user:
+        #     err_msg = 'Tài khoản đã tồn tại!'
+        #     return render_template('register.html', err_msg=err_msg)
+        # elif not password.__eq__(confirm_password):
+        #     err_msg = 'Mâật khẩu không khớp!'
+        #     return render_template('register.html', err_msg=err_msg)
+        # return redirect('/')
+@app.route('/logout')
+def logout_my_user():
+    logout_user()
+    return redirect('/login')
+
 
 @app.context_processor
 def common_attributes():
     return {
         "cate": dao.load_categories()
     }
+
+@login.user_loader
+def get_user(id):
+    return dao.get_user_by_id(id)
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    with app.app_context():
+        app.run(debug=True)

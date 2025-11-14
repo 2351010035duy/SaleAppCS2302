@@ -4,7 +4,7 @@
 
 {%block content%}
 <body>
-<form action="/action_page.php">
+<form method="post">
     <div class="mb-3 mt-3">
         <label for="user_name" class="form-label">Tên đăng nhập:</label>
         <input type="text" class="form-control" id="user_name" placeholder="Nhập tên đăng nhập..." name="user_name">
@@ -20,6 +20,9 @@
     </div>
     <button type="submit" class="btn btn-primary">Đăng nhập</button>
 </form>
+{%if err_msg%}
+<div class="alert alert-danger mt-3">{{err_msg}}</div>
+{%endif%}
 <h6 class="text-info mt-3">Bạn chưa có tài khoản? <a href="/register">Đăng ký ngay.</a></h6>
 </body>
 {%endblock%}
